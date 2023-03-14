@@ -18,4 +18,10 @@ def login():
 def register():
     return render_template('register.html')
 
+@app.route("/dashboard/<username>")
+def dashboard(username=None):
+    return render_template("dashboard.html", username=username)
 
+@app.route("/admin_dashboard/<username>")
+def accoadmin_dashboard(username=None):
+    return render_template("admin_dashboard.html", username=username)
