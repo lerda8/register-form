@@ -8,14 +8,14 @@
     <body>
         <center>
             <h1>REGISTER</h1>
-            <form method="POST">
+            <form method="POST" action="{{url_for('new_account')}}">
                 <input type="name" name="name" placeholder="Email"><br>
                 <input type="password" name="password" placeholder="Password"><br>
-                <input type="password" name="password" placeholder="Repeat Password"><br>
+                <input type="password" name="password1" placeholder="Repeat Password"><br>
                 <input type="submit" name="submit" placeholder="Login"><br>
             </form>
             <a href="{{url_for("index")}}">HOME</a><br>
-            <a href="{{url_for("login")}}">I HAVE AN ACCOUNT</a><br>
+            <a href="{{url_for("login_form")}}">I HAVE AN ACCOUNT</a><br>
         </center>
     </body>
 </html>
