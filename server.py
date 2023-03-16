@@ -38,7 +38,7 @@ def new_account():
     password = request.form["password"]
     password1 = request.form["password1"]
     if password == password1:
-        db.execute("INSERT INTO users (username, password) VALUES (?, ?)", (name, password))
+        db.execute("INSERT INTO users (username, password, admin) VALUES (?, ?, ?)", (name, password, "1"))
         db.commit()
         return render_template("admin_user.html", name=name)
     else:
@@ -51,7 +51,7 @@ def new_reg_account():
     password = request.form["password"]
     password1 = request.form["password1"]
     if password == password1:
-        db.execute("INSERT INTO users (username, password) VALUES (?, ?)", (name, password))
+        db.execute("INSERT INTO users (username, password, admin) VALUES (?, ?, ?)", (name, password, "0"))
         db.commit()
         return render_template("reg_user.html", name=name)
     else:
