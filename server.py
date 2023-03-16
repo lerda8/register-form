@@ -37,11 +37,15 @@ def new_account():
     name = request.form["name"]
     password = request.form["password"]
     password1 = request.form["password1"]
+    # admin = request.form["admin"]
     if password == password1:
         db.execute("INSERT INTO users (username, password) VALUES (?, ?)", (name, password))
         db.commit()
-        return "THANK YOU FOR REGISTERING"
+        return render_template("user.html", name=name)
     else:
         return "THE PASSWORDS ARE NOT MATCHING, TRY AGAIN"
-
+    
+# @app.route("/dashboard/<username>")
+# def dashboard(username=None):
+#    return render_template("user.html", username=username)
 
