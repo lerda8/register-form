@@ -31,21 +31,33 @@ def login_form():
 def register_form():
     return render_template('register.html')
 
-@app.route("/register", methods=["POST", "GET"])
+@app.route("/register/admin", methods=["POST", "GET"])
 def new_account():
     db = get_connection()
     name = request.form["name"]
     password = request.form["password"]
     password1 = request.form["password1"]
-    # admin = request.form["admin"]
     if password == password1:
         db.execute("INSERT INTO users (username, password) VALUES (?, ?)", (name, password))
         db.commit()
-        return render_template("user.html", name=name)
+        return render_template("admin_user.html", name=name)
     else:
         return "THE PASSWORDS ARE NOT MATCHING, TRY AGAIN"
     
-# @app.route("/dashboard/<username>")
-# def dashboard(username=None):
-#    return render_template("user.html", username=username)
+@app.route("/register/reg_account", methods=["POST", "GET"])
+def new_reg_account():
+    db = get_connection()
+    name = request.form["name"]
+    password = request.form["password"]
+    password1 = request.form["password1"]
+    if password == password1:
+        db.execute("INSERT INTO users (username, password) VALUES (?, ?)", (name, password))
+        db.commit()
+        return render_template("reg_user.html", name=name)
+    else:
+        return "THE PASSWORDS ARE NOT MATCHING, TRY AGAIN"
+    
+
+    
+
 
