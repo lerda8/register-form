@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session, redirect, url_for, g
 import json
 
 
@@ -42,13 +42,28 @@ def login_go():
     query_login = connection.execute('SELECT * FROM users WHERE username = ?', (name,)).fetchone()
     results=list(query_login)
     if name in results and password == results[2] and results[3] == 1:
-        return "admin login"
-    if name in results and password == results[2] and results[3] == 0:
-        return "regular login"
+        session.clear()
+        session['user_id'] = results[1]
+        if results[3] == 1:
+            user_id = session.get('user_id')
+            return redirect(url_for('dashboard', username=user_id))
+        else:
+            return "regular login"
     if len(results) <= 0: 
         return "WRONG EMAIL OR PASSWORD"
     else:
         return "WRONG EMAIL OR PASSWORD" 
+    
+@app.route('/dashboard/<username>')
+def dashboard(username):
+    return render_template("dashboard.html", username = username)
+
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return render_template("logout.html")
     
 
 @app.route('/register/form', methods=["POST", "GET"])
