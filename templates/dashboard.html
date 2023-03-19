@@ -4,13 +4,24 @@
     <meta charset="UTF-8">
     <title>HOME</title>
     <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{{url_for("index")}}">Home</a></li>
+          <li class="breadcrumb-item"><a href="{{url_for("login_form")}}">Login</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+        </ol>
+      </nav>
 </head>
 <body>   
     <center>
         <h1>Welcome {{ username }}!!! You have been sucesfully logged in</h1>
         <a href="{{url_for("logout")}}">Log-out</a><br>
+ 
     </center>
-
+    
+    <div class="mx-auto" style="width: 400px;">
+    <label class="form-label" for="customFile">Upload your profile picture</label>
+    </div>
 
 
 

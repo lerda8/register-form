@@ -1,13 +1,9 @@
 import sqlite3
-from flask import Flask, render_template, request, session, redirect, url_for, g
-import json
+from flask import Flask, render_template, request, session, redirect, url_for, flash
 
 
 app = Flask(__name__)
 app.secret_key = 'laksja9asd80asd09asd098asdsdkdf7763sdsds'
-app.config['SESSION_TYPE'] = 'filesystem'
-
-
 
 def get_connection():
     conn = sqlite3.connect('users.db')
@@ -56,7 +52,7 @@ def login_go():
     
 @app.route('/dashboard/<username>')
 def dashboard(username):
-    return render_template("dashboard.html", username = username)
+    return render_template("dashboard.html")
 
 
 

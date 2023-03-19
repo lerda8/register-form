@@ -17,11 +17,16 @@
             <h1>REGISTER</h1>
             <div class="form-group">
             <form method="POST" action="{{url_for('new_account')}}">
-                <input type="name" name="name" placeholder="Email"><br>
-                <input type="password" name="password" placeholder="Password"><br>
-                <input type="password" name="password1" placeholder="Repeat Password"><br>
-                <input type="submit" class="btn btn-primary" name="submit_regular" placeholder="Regular Account" value="CREAT AN REGULAR ACCOUNT" formaction="{{url_for('new_reg_account')}}">
-                <input type="submit" class="btn btn-warning" name="submit_admin" placeholder="Admin Account" value="CREAT AN ADMIN ACCOUNT">
+              <div class="form-group">
+              <input type="name" name="name" placeholder="Email"><br>
+              </div>
+              <div class="form-group"></div>
+              <input type="password" name="password" placeholder="Password"><br>
+              <input type="password" name="password1" placeholder="Repeat Password"><br>
+              </div>
+              <input type="submit" class="btn btn-primary" name="submit_regular" placeholder="Regular Account" value="CREAT AN REGULAR ACCOUNT" formaction="{{url_for('new_reg_account')}}">
+              
+              <input type="submit" class="btn btn-warning" name="submit_admin" placeholder="Admin Account" value="CREAT AN ADMIN ACCOUNT"><br>
             </form>
             </div>
             <a href="{{url_for("login_form")}}">I HAVE AN ACCOUNT</a><br>
