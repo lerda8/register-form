@@ -3,14 +3,21 @@
     <head>
         <meta charset="UTF-8">
         <title>Login Page</title>
+        <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
     </head>
     <body>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="{{url_for("index")}}">Home</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Login</li>
+            </ol>
+          </nav>
         <center>
             <h1>LOGIN</h1>
-            <form method="POST">
+            <form method="POST" action="{{url_for('login_go')}}">
                 <input type="name" name="name" placeholder="Email"><br>
                 <input type="password" name="password" placeholder="Password"><br>
-                <input type="submit" name="submit" placeholder="Login"><br>
+                <input type="submit" class="btn btn-primary" name="submit" placeholder="Login"><br>
             </form>
             <a href="{{url_for("register_form")}}">I DONT HAVE AN ACCOUNT</a><br>
         </center>

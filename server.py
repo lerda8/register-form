@@ -1,8 +1,12 @@
 import sqlite3
 from flask import Flask, render_template, request
+import json
 
 
 app = Flask(__name__)
+app.secret_key = 'laksja9asd80asd09asd098asdsdkdf7763sdsds'
+app.config['SESSION_TYPE'] = 'filesystem'
+
 
 
 def get_connection():
@@ -29,12 +33,27 @@ def index():
 def login_form():
     return render_template('login.html')
 
+@app.route("/login/form/sucess", methods=["POST", "GET"])
+def login_go():
+    connection = get_connection()
+    cursor = connection.cursor()
+    name = request.form["name"]
+    password = request.form["password"]
+    query_login = connection.execute('SELECT * FROM users WHERE username = ?', (name,)).fetchone()
+    results=list(query_login)
+    if name in results and password == results[2] and results[3] == 1:
+        return "admin login"
+    if name in results and password == results[2] and results[3] == 0:
+        return "regular login"
+    if len(results) <= 0: 
+        return "WRONG EMAIL OR PASSWORD"
+    else:
+        return "WRONG EMAIL OR PASSWORD" 
+    
+
 @app.route('/register/form', methods=["POST", "GET"])
 def register_form():
     return render_template('register.html')
-
-
-
 
 @app.route("/register/admin", methods=["POST", "GET"])
 def new_account():
@@ -57,8 +76,6 @@ def new_account():
     else:
         return "AN ACCOUNT WITH THIS USERNAME ALREADY EXISTS"
 
-
-    
 @app.route("/register/reg_account", methods=["POST", "GET"])
 def new_reg_account():
     connection = get_connection()
@@ -79,3 +96,4 @@ def new_reg_account():
         return "THE PASSWORDS ARE NOT MATCHING, TRY AGAIN"
     else:
        return "AN ACCOUNT WITH THIS USERNAME ALREADY EXISTS"
+    
