@@ -8,6 +8,8 @@ import uuid
 app = Flask(__name__)
 app.secret_key = 'laksja9asd80asd09asd098asdsdkdf7763sdsds'
 
+###Database Creation
+
 def get_connection():
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
@@ -65,29 +67,13 @@ def create_files_tables():
 
 create_files_tables()
 
-
-@app.route('/change-plan', methods=['POST'])
-def change_plan():
-    user_id = request.form['user_id']
-    full_access = str(session['full_access'])
-    if full_access == "True":
-        connection = get_connection()
-        cursor = connection.cursor()
-        cursor.execute('UPDATE users SET plan = ? WHERE username = ?', (0, user_id))
-        connection.commit()
-        session['full_access'] = False
-        return redirect(url_for('dashboard', username=user_id, full_access=session['full_access']))
-    else:
-        connection = get_connection()
-        cursor = connection.cursor()
-        cursor.execute('UPDATE users SET plan = ? WHERE username = ?', (1, user_id))
-        connection.commit()
-        session['full_access'] = True
-        return redirect(url_for('dashboard', username=user_id, full_access=session['full_access']))
+###Home
 
 @app.route("/")
 def index():
     return render_template('index.html')
+
+###Login/Register/Logout/Login
 
 @app.route('/login/form')
 def login_form():
@@ -135,93 +121,7 @@ def login_go():
                 return redirect(url_for('dashboard',username=user_id, full_access=full_access))
     else:
         return "ERROR"
-
-@app.route("/my-todo/", methods=["GET", "POST"])
-def todo():
-    connection = get_connection()
-    cursor = connection.cursor()
-    user_id = session["user_id"]
-    query = "SELECT * FROM tasks WHERE user_id = ?"
-    cursor.execute(query, (user_id,))
-    tasks = cursor.fetchall()
-
-    # Query the files table for each task
-    files = []
-    for task in tasks:
-        task_id = task[0]
-        query = "SELECT * FROM files WHERE task_id = ?"
-        cursor.execute(query, (task_id,))
-        task_files = cursor.fetchall()
-        files.append(task_files)
-
-    connection.close()
-    return render_template('to-do.html', tasks=tasks, files=files)
-
-@app.route('/upload', methods=['POST'])
-def upload():
-    if request.method == 'POST':
-        todo_text = request.form['todo-text']
-        todo_description = request.form['todo-description']
-        todo_date = request.form['todo-date']
-        file = request.files['todo-file']
-        filename = secure_filename(file.filename)
-        user_id = session.get('user_id')
-        file_id = str(uuid.uuid4())
-        file_path = os.path.join('static/uploads', file_id)
-        file.save(file_path)
-        conn = sqlite3.connect('users.db')
-        c = conn.cursor()
-        c.execute("INSERT INTO tasks (name, description, due_date, user_id) VALUES (?, ?, ?, ?)",
-                  (todo_text, todo_description, todo_date, user_id))
-        task_id = c.lastrowid
-        c.execute("INSERT INTO files (name, path, task_id) VALUES (?, ?, ?)",
-                  (filename, file_path, task_id))
-        conn.commit()
-        conn.close()
-        return redirect(url_for('todo'))
-    else:
-        return 'Invalid request method'
-
-
-
-
-@app.route("/dashboard/<username>", methods=["GET"])
-def dashboard(username):
-    if 'user_id' in session:
-        is_admin = session.get('is_admin')
-        user_type = 'Administrator' if is_admin else 'Regular User'
-        connection = get_connection()
-        cursor = connection.cursor()
-        query = 'SELECT * FROM users'
-        users = cursor.execute(query).fetchall()
-        connection.close()
-        return render_template('dashboard.html', username=username, user_type=user_type, users=users)
-    else:
-        return redirect(url_for('login_form'))
-
-
-@app.route("/delete_account", methods=["POST"])
-def delete_account():
-    user_id = session.get('user_id')
-    connection = get_connection()
-    cursor = connection.cursor()
-    cursor.execute('DELETE FROM users WHERE id=?', (user_id,))
-    connection.commit()
-    session.clear()
-    return redirect(url_for('index'))
-
-@app.route('/dashboard/delete/<int:user_id>', methods=['POST'])
-def delete_user(user_id):
-    if 'user_id' in session and session.get('is_admin'):
-        connection = get_connection()
-        cursor = connection.cursor()
-        cursor.execute('DELETE FROM users WHERE id=?', (user_id,))
-        connection.commit()
-        connection.close()
-        username = session.get('user_id')
-        return redirect(url_for('dashboard', username=username))
-    else:
-        return redirect(url_for('login_form'))
+    
 
 @app.route("/logout", methods=["POST"])
 def logout():
@@ -252,6 +152,7 @@ def new_account():
         return "THE PASSWORDS ARE NOT MATCHING, TRY AGAIN"
     else:
         return "AN ACCOUNT WITH THIS USERNAME ALREADY EXISTS"
+    
 
 @app.route("/register/reg_account", methods=["POST", "GET"])
 def new_reg_account():
@@ -273,4 +174,140 @@ def new_reg_account():
         return "THE PASSWORDS ARE NOT MATCHING, TRY AGAIN"
     else:
        return "AN ACCOUNT WITH THIS USERNAME ALREADY EXISTS"
+
+    
+###User Management
+
+@app.route('/change-plan', methods=['POST'])
+def change_plan():
+    user_id = request.form['user_id']
+    full_access = str(session['full_access'])
+    if full_access == "True":
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute('UPDATE users SET plan = ? WHERE username = ?', (0, user_id))
+        connection.commit()
+        session['full_access'] = False
+        return redirect(url_for('dashboard', username=user_id, full_access=session['full_access']))
+    else:
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute('UPDATE users SET plan = ? WHERE username = ?', (1, user_id))
+        connection.commit()
+        session['full_access'] = True
+        return redirect(url_for('dashboard', username=user_id, full_access=session['full_access']))
+
+@app.route("/delete_account", methods=["POST"])
+def delete_account():
+    user_id = session.get('user_id')
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute('DELETE FROM users WHERE id=?', (user_id,))
+    connection.commit()
+    session.clear()
+    return redirect(url_for('index'))
+
+###TODO Page
+
+@app.route("/my-todo/", methods=["GET", "POST"])
+def todo():
+    connection = get_connection()
+    cursor = connection.cursor()
+    user_id = session["user_id"]
+    query = "SELECT * FROM tasks WHERE user_id = ?"
+    cursor.execute(query, (user_id,))
+    tasks = cursor.fetchall()
+
+    # Query the files table for each task
+    files = []
+    for task in tasks:
+        task_id = task[0]
+        query = "SELECT * FROM files WHERE task_id = ?"
+        cursor.execute(query, (task_id,))
+        task_files = cursor.fetchall()
+        files.append(task_files)
+
+    connection.close()
+    return render_template('to-do.html', tasks=tasks, files=files)
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    if request.method == 'POST':
+        todo_text = request.form['todo-text']
+        todo_description = request.form['todo-description']
+        todo_date = request.form['todo-date']
+        file = request.files['todo-file']
+        filename = file.filename
+        user_id = session.get('user_id')
+        file_id = str(uuid.uuid4())
+        file_path = os.path.join('static/uploads', file_id)
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        try:
+            project_id = None
+            if request.form['todo-project-option'] == 'new-project':
+                project_name = request.form['todo-new-project']
+                c.execute("INSERT INTO projects (name, user_id) VALUES (?, ?)",
+                          (project_name, user_id))
+                project_id = c.lastrowid
+            else:
+                project_id = request.form['todo-project']
+            c.execute("INSERT INTO tasks (name, description, due_date, user_id, project_id) VALUES (?, ?, ?, ?, ?)",
+                      (todo_text, todo_description, todo_date, user_id, project_id))
+            task_id = c.lastrowid
+            c.execute("INSERT INTO files (name, path, task_id) VALUES (?, ?, ?)",
+                      (filename, file_path, task_id))
+            conn.commit()
+            file.save(file_path)
+        except:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+        return redirect(url_for('todo'))
+    else:
+        return 'Invalid request method'
+
+@app.route('/delete-task/<int:task_id>', methods=['POST'])
+def delete_task(task_id):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('todo'))
+
+
+###Dashboards
+
+@app.route("/dashboard/<username>", methods=["GET"])
+def dashboard(username):
+    if 'user_id' in session:
+        is_admin = session.get('is_admin')
+        user_type = 'Administrator' if is_admin else 'Regular User'
+        connection = get_connection()
+        cursor = connection.cursor()
+        query = 'SELECT * FROM users'
+        users = cursor.execute(query).fetchall()
+        connection.close()
+        return render_template('dashboard.html', username=username, user_type=user_type, users=users)
+    else:
+        return redirect(url_for('login_form'))
+
+@app.route('/dashboard/delete/<int:user_id>', methods=['POST'])
+def delete_user(user_id):
+    if 'user_id' in session and session.get('is_admin'):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute('DELETE FROM users WHERE id=?', (user_id,))
+        connection.commit()
+        connection.close()
+        username = session.get('user_id')
+        return redirect(url_for('dashboard', username=username))
+    else:
+        return redirect(url_for('login_form'))
+
+
+
+
     
