@@ -133,6 +133,22 @@ def login_go():
     else:
         return "ERROR"
 
+@app.route("/my-todo/", methods=["GET", "POST"])
+def todo():
+    connection = get_connection()
+    cursor = connection.cursor()
+    name = session["user_id"]
+    user_id_query = "SELECT id FROM users WHERE username = ?"
+    user_id = cursor.execute(user_id_query, (name,)).fetchone()[0]
+    query = "SELECT * FROM tasks WHERE user_id = ?"
+    cursor.execute(query, (user_id,))
+    tasks = cursor.fetchall()
+    connection.close()
+    return render_template('to-do.html', tasks=tasks)
+
+
+
+
 
 @app.route("/dashboard/<username>", methods=["GET"])
 def dashboard(username):
