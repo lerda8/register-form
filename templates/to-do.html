@@ -21,41 +21,53 @@
       </div>
     </nav>
     <div class="container mt-5">
-      <h1 class="text-center mb-5">To-Do List</h1>
-      <div class="row">
-        <div class="col-md-8 offset-md-2">
-          <div class="card">
-            <div class="card-header bg-primary text-white">
-              <h4>Add Task</h4>
+        <h1 class="text-center mb-5">To-Do List</h1>
+        <div class="row">
+          <div class="col-md-8 offset-md-2">
+            <div class="card">
+              <div class="card-header bg-primary text-white">
+                <h4>Add Task</h4>
+              </div>
+              <div class="form-group">
+                <label for="todo-project">Project:</label>
+                <select class="form-control" id="todo-project" name="todo-project">
+                    <option value="">Select project</option>
+                    {% for project in projects %}
+                    <option value="{{ project[0] }}">{{ project[1] }}</option>
+                    {% endfor %}
+                    <option value="new_project">Add new project</option>
+                </select>
             </div>
-            <div class="card-body">
-              <form id="todo-form">
-                <div class="form-group">
-                    <label for="todo-text">Add a task:</label>
-                    <input type="text" class="form-control" id="todo-text" name="todo-text">
-                  </div>
-                  <div class="form-group">
-                    <label for="todo-description">Description:</label>
-                    <textarea class="form-control" id="todo-description" name="todo-description"></textarea>
-                  </div>
-                  <div class="form-group">
-                    <label for="todo-date">Due Date:</label>
-                    <input type="date" class="form-control" id="todo-date" name="todo-date">
-                  </div>
-                  <div class="form-group">
-                    <label for="todo-file">File Name:</label>
-                    <div class="custom-file">
-                      <input type="file" class="custom-file-input" id="todo-file" name="todo-file">
-                      <label class="custom-file-label" for="todo-file">Choose file</label>
+            <div class="form-group" id="new-project">
+                <label for="todo-new-project">New Project Name:</label>
+                <input type="text" class="form-control" id="todo-new-project" name="todo-new-project" placeholder="Enter new project name">
+            </div>
+            
+                    <div class="form-group">
+                      <label for="todo-text">Add a task:</label>
+                      <input type="text" class="form-control" id="todo-text" name="todo-text">
                     </div>
-                  </div>
-                  <button type="submit" class="btn btn-primary btn-block">Add Task</button>
-                  
-              </form>
+                    <div class="form-group">
+                      <label for="todo-description">Description:</label>
+                      <textarea class="form-control" id="todo-description" name="todo-description"></textarea>
+                    </div>
+                    <div class="form-group">
+                      <label for="todo-date">Due Date:</label>
+                      <input type="date" class="form-control" id="todo-date" name="todo-date">
+                    </div>
+                    <div class="form-group">
+                      <label for="todo-file">File Name:</label>
+                      <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="todo-file" name="todo-file">
+                        <label class="custom-file-label" for="todo-file">Choose file</label>
+                      </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Add Task</button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
-      </div>
       <div class="container mt-5">
         <div class="row">
             <div class="col-md-8 offset-md-2">
@@ -67,35 +79,37 @@
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
                                     <th>Name</th>
                                     <th>Description</th>
                                     <th>Due Date</th>
-                                    <th>File Name</th>
+                                    <th>File</th>
                                     <th>Delete</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for task in tasks %}
                                 <tr>
-                                    <td>{{ task[0] }}</td>
                                     <td>{{ task[1] }}</td>
-                                    <td>{{ task[2] }}</td>
+                                    <td style="max-width: 150px; word-wrap: break-word;">{{ task[2] }}</td>
                                     <td>{{ task[3] }}</td>
-                                    <td>{{ task[4] }}</td>
+                                    {% if files[3] == tasks[0] %}
+                                    <td><a href="#">Download File</a></td>
+                                    {% else %}
+                                    <td>No file attached</td>
+                                    {% endif %}
                                     <td>
                                         <form method="POST" action="#">
-                                            <button type="submit" name="delete" value="{{ task[0] }}" class="btn btn-danger btn-sm">Delete</button>
+                                            <button type="submit" name="delete" value="{{ task[5] }}" class="btn btn-danger btn-sm">Delete</button>
                                         </form>
                                     </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
-                        </table>
+                        </table>                        
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</body>
+    
 </html>

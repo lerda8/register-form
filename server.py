@@ -1,5 +1,8 @@
 import sqlite3
-from flask import Flask, render_template, request, session, redirect, url_for, flash
+from flask import Flask, render_template, request, session, redirect, url_for, flash, send_file
+from werkzeug.utils import secure_filename
+import os
+import uuid
 
 
 app = Flask(__name__)
@@ -43,7 +46,7 @@ def create_task_tables():
         description TEXT NOT NULL,
         due_date DATE NOT NULL,
         is_completed INTEGER NOT NULL DEFAULT 0,
-        project_id INTEGER NOT NULL,
+        project_id TEXT,
         user_id INTEGER NOT NULL,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE)""")
@@ -54,7 +57,7 @@ def create_files_tables():
     db = get_connection()
     db.execute("""
         CREATE TABLE IF NOT EXISTS files
-        (id INTEGER PRIMARY KEY,
+        (id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         path TEXT NOT NULL,
         task_id INTEGER NOT NULL,
@@ -103,32 +106,32 @@ def login_go():
     if name in results and password == results[2]:
         session.clear()
         session['user_plan'] = results[4]
-        session['user_id'] = results[1]
+        session['user_id'] = results[0]
         if results[3] == 'yes':
             if results[4] == 0:
                 session['full_access'] = False
                 session['is_admin'] = True
                 full_access = session.get('full_access')
-                user_id = session.get('user_id')
+                user_id = results[1]
                 return redirect(url_for('dashboard',username=user_id, full_access=full_access))
             else:
                 session['full_access'] = True
                 session['is_admin'] = True
                 full_access = session.get('full_access')
-                user_id = session.get('user_id')
+                user_id = results[1]
                 return redirect(url_for('dashboard',username=user_id, full_access=full_access))
         else:
             if results[4] == 0:
                 session['full_access'] = False
                 session['is_admin'] = False
                 full_access = session.get('full_access')
-                user_id = session.get('user_id')
+                user_id = results[1]
                 return redirect(url_for('dashboard',username=user_id, full_access=full_access))
             else:
                 session['full_access'] = True
                 session['is_admin'] = False
                 full_access = session.get('full_access')
-                user_id = session.get('user_id')
+                user_id = results[1]
                 return redirect(url_for('dashboard',username=user_id, full_access=full_access))
     else:
         return "ERROR"
@@ -137,15 +140,47 @@ def login_go():
 def todo():
     connection = get_connection()
     cursor = connection.cursor()
-    name = session["user_id"]
-    user_id_query = "SELECT id FROM users WHERE username = ?"
-    user_id = cursor.execute(user_id_query, (name,)).fetchone()[0]
+    user_id = session["user_id"]
     query = "SELECT * FROM tasks WHERE user_id = ?"
     cursor.execute(query, (user_id,))
     tasks = cursor.fetchall()
-    connection.close()
-    return render_template('to-do.html', tasks=tasks)
 
+    # Query the files table for each task
+    files = []
+    for task in tasks:
+        task_id = task[0]
+        query = "SELECT * FROM files WHERE task_id = ?"
+        cursor.execute(query, (task_id,))
+        task_files = cursor.fetchall()
+        files.append(task_files)
+
+    connection.close()
+    return render_template('to-do.html', tasks=tasks, files=files)
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    if request.method == 'POST':
+        todo_text = request.form['todo-text']
+        todo_description = request.form['todo-description']
+        todo_date = request.form['todo-date']
+        file = request.files['todo-file']
+        filename = secure_filename(file.filename)
+        user_id = session.get('user_id')
+        file_id = str(uuid.uuid4())
+        file_path = os.path.join('static/uploads', file_id)
+        file.save(file_path)
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute("INSERT INTO tasks (name, description, due_date, user_id) VALUES (?, ?, ?, ?)",
+                  (todo_text, todo_description, todo_date, user_id))
+        task_id = c.lastrowid
+        c.execute("INSERT INTO files (name, path, task_id) VALUES (?, ?, ?)",
+                  (filename, file_path, task_id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('todo'))
+    else:
+        return 'Invalid request method'
 
 
 
@@ -170,7 +205,7 @@ def delete_account():
     user_id = session.get('user_id')
     connection = get_connection()
     cursor = connection.cursor()
-    cursor.execute('DELETE FROM users WHERE username=?', (user_id,))
+    cursor.execute('DELETE FROM users WHERE id=?', (user_id,))
     connection.commit()
     session.clear()
     return redirect(url_for('index'))
