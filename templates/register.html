@@ -7,18 +7,32 @@
         <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
     </head>
     <body>    
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="{{url_for("index")}}">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Register</li>
-            </ol>
-          </nav>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <a class="navbar-brand" href="#">Blog</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+                <a class="nav-link" href="{{url_for("index")}}">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">Blogs</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{url_for('login_form')}}">Login</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
         <center>
             <h1>REGISTER</h1>
             <div class="form-group">
             <form method="POST" action="{{url_for('new_account')}}">
               <div class="form-group">
-              <input type="name" name="name" placeholder="Email"><br>
+              <input type="name" name="name" placeholder="Username"><br>
               </div>
               <div class="form-group"></div>
               <input type="password" name="password" placeholder="Password"><br>

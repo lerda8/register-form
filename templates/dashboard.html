@@ -1,32 +1,103 @@
+<!DOCTYPE html>
 <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Dashboard</title>
+        <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <a class="navbar-brand" href="#">Blog</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+                <a class="nav-link" href="#">Tasks</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
 
-<head>
-    <meta charset="UTF-8">
-    <title>HOME</title>
-    <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="{{url_for("index")}}">Home</a></li>
-          <li class="breadcrumb-item"><a href="{{url_for("login_form")}}">Login</a></li>
-          <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
-        </ol>
-      </nav>
-</head>
-<body>   
-    <center>
-        <h1>Welcome {{ username }}!!! You have been sucesfully logged in</h1>
-        <a href="{{url_for("logout")}}">Log-out</a><br>
- 
-    </center>
+        <center>
+          <div class="container my-5">
+            <h1 class="text-center mb-4">Welcome, <b>{{username}}</b></h1>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">User Info</h5>
+                    <hr>
+                    <p class="card-text"><strong>Type of Account:</strong> {{user_type}}</p>
+                    <p class="card-text"><strong>Number of unfinished tasks:</strong> TODO</p>
+                    <button type="button" class="btn btn-link">Show my unfinished tasks</button>
     
-    <div class="mx-auto" style="width: 400px;">
-    <label class="form-label" for="customFile">Upload your profile picture</label>
-    </div>
+                    {% if session['full_access'] == True %}
+                    <div class="mt-4">
+                        <p class="card-text"><strong>Membership:</strong> Full</p>
+                        <form action="{{ url_for('change_plan') }}" method="post">
+                            <input type="hidden" name="user_id" value="{{ session['user_id'] }}">
+                            <input type="hidden" name="new_plan" value="0">
+                            <button type="submit" class="btn btn-danger">Go free</button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="mt-4">
+                        <p class="card-text"><strong>Membership:</strong> Free</p>
+                        <form action="{{ url_for('change_plan') }}" method="post">
+                            <input type="hidden" name="user_id" value="{{ session['user_id'] }}">
+                            <input type="hidden" name="new_plan" value="1">
+                            <button type="submit" class="btn btn-primary">Go full</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
 
-
-
-
-
-
-</body>
+                      {% if user_type == 'Administrator' %}
+            <div class="container mt-5">
+              <h2 class="mb-4">Manage Users</h2>
+              <div class="card">
+                <div class="card-body">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Username</th>
+                        <th>ID</th>
+                        <th>Password</th>
+                        <th>Type</th>
+                        <th>Membership</th>
+                        <th>Delete Account</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for user in users %}
+                      <tr>
+                        <td>{{user[1]}}</td>
+                        <td>{{user[0]}}</td>
+                        <td>{{user[2]}}</td>
+                        <td>{{'Administrator' if user[3] == 'yes' else 'Regular User'}}</td>
+                        <td>{{'Full' if user[4] == 1 else 'Regular User'}}</td>
+                        <td>
+                          <form action="{{ url_for('delete_user', user_id=user[0]) }}" method="POST">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                          </form>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+          
+          </center>
+          <form method="POST" action="{{url_for('logout')}}">
+            <button type="submit" class="btn btn-primary">Logout</button>
+        </form>
+        <form action="{{ url_for('delete_account') }}" method="POST">
+            <input type="submit" class="btn btn-danger" value="Delete Account">
+        </form></td>
+</body>  
 </html>
