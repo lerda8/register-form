@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="{{url_for("index")}}">Blog</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{{url_for("dashboard", username=session.get('username'))}}">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{url_for("new_task")}}">New Task</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <div class="container mt-5">
+      <h2 class="mb-4">Tasks</h2>
+      <div class="card">
+          <div class="card-body">
+              {% if unfinished %}
+              {% set unfinished_sorted = unfinished|sort(attribute='1') %}
+              <table class="table table-bordered">
+                  <thead>
+                      <tr>
+                          <th>Project</th>
+                          <th>Name</th>
+                          <th>Description</th>
+                          <th>Due Date</th>
+                          <th>File</th>
+                          <th>Mark as completed</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {% for task in unfinished_sorted %}
+                      <tr>
+                          <td>{{ task[1] }}</td>
+                          <td>{{ task[4] }}</td>
+                          <td style="max-width: 150px; word-wrap: break-word;">{{ task[5] }}</td>
+                          <td>{{ task[6] }}</td>
+                          <td>{% if task[10] == None %}No files attached{% else %}<a href="#">Download files</a>{% endif %}</td>
+                          <td>
+                              <form method="POST" action="{{ url_for('complete_task', task_id=task[3]) }}">
+                                  <button type="submit" class="btn btn-danger btn-sm">Mark as completed</button>
+                              </form>
+                          </td>                                      
+                      </tr>
+                      {% endfor %}
+                  </tbody>
+              </table>
+              {% else %}
+              <p>No unfinished tasks.</p>
+              {% endif %}
+          </div>
+      </div>
+  </div>
+  
+    
+      
+  <div class="container mt-5">
+    <h2 class="mb-4">Finished Tasks</h2>
+    <div class="card">
+        <div class="card-body">
+            {% if finished %}
+            {% set finished_sorted = finished|sort(attribute='1') %}
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Project</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Due Date</th>
+                        <th>File</th>
+                        <th>Mark as completed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in finished_sorted %}
+                    <tr>
+                        <td>{{ task[1] }}</td>
+                        <td>{{ task[4] }}</td>
+                        <td style="max-width: 150px; word-wrap: break-word;">{{ task[5] }}</td>
+                        <td>{{ task[6] }}</td>
+                        <td>{% if task[11] == None %}No files attached{% else %}<a href="#">Download files</a>{% endif %}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('complete_task', task_id=task[3]) }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Mark as not finished</button>
+                            </form>
+                        </td>                                      
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No finished tasks.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+  
+
+
+
+
+
+  
+
+    
+</html>

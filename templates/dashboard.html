@@ -14,7 +14,10 @@
           <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
               <li class="nav-item">
-                <a class="nav-link" href="#">Tasks</a>
+                <a class="nav-link" href="{{ url_for('tasks') }}">Tasks</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('new_task') }}">New Task</a>
               </li>
             </ul>
           </div>
@@ -22,14 +25,14 @@
 
         <center>
           <div class="container my-5">
-            <h1 class="text-center mb-4">Welcome, <b>{{username}}</b></h1>
+            <h1 class="text-center mb-4">Welcome, <b>{{session.get('username')}}</b></h1>
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">User Info</h5>
                     <hr>
                     <p class="card-text"><strong>Type of Account:</strong> {{user_type}}</p>
                     <p class="card-text"><strong>Number of unfinished tasks:</strong> TODO</p>
-                    <form action="{{ url_for('todo') }}" method="post">
+                    <form action="{{ url_for('tasks') }}" method="post">
                       <button type="submit" class="btn btn-link">Show my unfinished tasks</button>
                   </form>
                     {% if session['full_access'] == True %}

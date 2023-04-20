@@ -93,6 +93,7 @@ def login_go():
         session.clear()
         session['user_plan'] = results[4]
         session['user_id'] = results[0]
+        session['username'] = results[1]
         if results[3] == 'yes':
             if results[4] == 0:
                 session['full_access'] = False
@@ -209,73 +210,112 @@ def delete_account():
 
 ###TODO Page
 
-@app.route("/my-todo/", methods=["GET", "POST"])
-def todo():
+@app.route("/tasks/", methods=["GET", "POST"])
+def tasks():
     connection = get_connection()
     cursor = connection.cursor()
-    user_id = session["user_id"]
-    query = "SELECT * FROM tasks WHERE user_id = ?"
-    cursor.execute(query, (user_id,))
-    tasks = cursor.fetchall()
-
-    # Query the files table for each task
-    files = []
-    for task in tasks:
-        task_id = task[0]
-        query = "SELECT * FROM files WHERE task_id = ?"
-        cursor.execute(query, (task_id,))
-        task_files = cursor.fetchall()
-        files.append(task_files)
-
+    user_id = session.get("user_id")
+    projects_query = "SELECT * FROM projects LEFT JOIN tasks ON projects.id = tasks.project_id LEFT JOIN files ON tasks.id = files.task_id WHERE projects.user_id = ?;"
+    cursor.execute(projects_query,(user_id,))
+    projects = cursor.fetchall()
+    tasks_list = []
+    for project in projects:
+        tasks_list.append(project)
     connection.close()
-    return render_template('to-do.html', tasks=tasks, files=files)
+    finished=[]
+    unfinished=[]
+    for task in tasks_list:
+       if task[7]==1:
+           finished.append(task)
+       elif task[7]==0:
+           unfinished.append(task)
+    #return unfinished
+    return render_template('tasks.html', finished=finished, unfinished=unfinished, projects = projects, tasks = tasks_list)
+
+        
+
 
 @app.route('/upload', methods=['POST'])
 def upload():
     if request.method == 'POST':
+        todo_project = request.form['todo-project']
+        todo_new_project = request.form['todo-new-project']
         todo_text = request.form['todo-text']
         todo_description = request.form['todo-description']
         todo_date = request.form['todo-date']
-        file = request.files['todo-file']
-        filename = file.filename
+        file = request.files.get('todo-file')
         user_id = session.get('user_id')
-        file_id = str(uuid.uuid4())
-        file_path = os.path.join('static/uploads', file_id)
         conn = sqlite3.connect('users.db')
         c = conn.cursor()
+        
+        # Check if both project options are selected
+        if not todo_project == "" and not todo_new_project == "":
+            return "You can choose either a new project or an existing project, not both."
+        
         try:
-            project_id = None
-            if request.form['todo-project-option'] == 'new-project':
-                project_name = request.form['todo-new-project']
-                c.execute("INSERT INTO projects (name, user_id) VALUES (?, ?)",
-                          (project_name, user_id))
-                project_id = c.lastrowid
+            # If new project is selected, check if the project name already exists
+            if todo_new_project:
+                c.execute("SELECT id FROM projects WHERE name=? AND user_id=?", (todo_new_project, user_id))
+                project = c.fetchone()
+                if project is None:
+                    c.execute("INSERT INTO projects (name, user_id) VALUES (?, ?)",
+                          (todo_new_project, user_id))
+                    project_id = c.lastrowid
+                else:
+                    project_id = project[0]
+            # If existing project is selected, use its ID
             else:
-                project_id = request.form['todo-project']
+                project_id = todo_project
+            
             c.execute("INSERT INTO tasks (name, description, due_date, user_id, project_id) VALUES (?, ?, ?, ?, ?)",
                       (todo_text, todo_description, todo_date, user_id, project_id))
             task_id = c.lastrowid
-            c.execute("INSERT INTO files (name, path, task_id) VALUES (?, ?, ?)",
-                      (filename, file_path, task_id))
+            
+            # Save file if one is uploaded
+            if file:
+                filename = file.filename
+                file_id = str(uuid.uuid4())
+                file_path = os.path.join('static/uploads', file_id)
+                c.execute("INSERT INTO files (name, path, task_id) VALUES (?, ?, ?)",
+                          (filename, file_path, task_id))
+                file.save(file_path)
+
             conn.commit()
-            file.save(file_path)
         except:
             conn.rollback()
             raise
         finally:
             conn.close()
-        return redirect(url_for('todo'))
+        return redirect(url_for('new_task'))
     else:
         return 'Invalid request method'
 
-@app.route('/delete-task/<int:task_id>', methods=['POST'])
-def delete_task(task_id):
+
+
+@app.route('/complete-task/<int:task_id>', methods=['POST'])
+def complete_task(task_id):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
+    # Get the current value of is_completed
+    c.execute('SELECT is_completed FROM tasks WHERE id = ?', (task_id,))
+    is_completed = c.fetchone()[0]
+    if is_completed == 1:
+        c.execute('UPDATE tasks SET is_completed = ? WHERE id = ?', (0, task_id))
+    else:
+        c.execute('UPDATE tasks SET is_completed = ? WHERE id = ?', (1, task_id))
     conn.commit()
     conn.close()
-    return redirect(url_for('todo'))
+    return redirect(url_for('tasks'))
+
+@app.route('/new-task/')
+def new_task():
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM projects")
+    projects = c.fetchall()
+    conn.close()
+    return render_template("new_task.html", projects=projects)
+
 
 
 ###Dashboards
@@ -306,7 +346,17 @@ def delete_user(user_id):
         return redirect(url_for('dashboard', username=username))
     else:
         return redirect(url_for('login_form'))
+    
 
+
+@app.route("/debile")
+def session_check():
+    session_list = []
+    session_list.append(str(session.get('user_id')))
+    session_list.append(str(session.get('is_admin')))
+    session_list.append(str(session.get('full_access')))
+    session_list.append(str(session.get('username')))
+    return session_list
 
 
 
