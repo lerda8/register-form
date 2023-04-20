@@ -1,8 +1,6 @@
 import sqlite3
 from flask import Flask, render_template, request, session, redirect, url_for, flash, send_file
-from werkzeug.utils import secure_filename
 import os
-import uuid
 
 
 app = Flask(__name__)
@@ -274,7 +272,7 @@ def upload():
             # Save file if one is uploaded
             if file:
                 filename = file.filename
-                file_id = str(uuid.uuid4())
+                file_id = filename
                 file_path = os.path.join('static/uploads', file_id)
                 c.execute("INSERT INTO files (name, path, task_id) VALUES (?, ?, ?)",
                           (filename, file_path, task_id))
@@ -309,12 +307,21 @@ def complete_task(task_id):
 
 @app.route('/new-task/')
 def new_task():
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM projects")
-    projects = c.fetchall()
-    conn.close()
-    return render_template("new_task.html", projects=projects)
+    connection = get_connection()
+    cursor = connection.cursor()
+    user_id = session.get("user_id")
+    project_query = "SELECT * FROM projects WHERE user_id = ?;"
+    project_execute = cursor.execute(project_query,(user_id,))
+    project = project_execute.fetchall()
+    connection.close()
+    connection = get_connection()
+    cursor = connection.cursor()
+    all_query = "SELECT * FROM projects LEFT JOIN tasks ON projects.id = tasks.project_id LEFT JOIN files ON tasks.id = files.task_id WHERE projects.user_id = ?;"
+    everything_execute = cursor.execute(all_query,(user_id,))
+    everything = everything_execute.fetchall()
+    connection.close()
+    #return project
+    return render_template("new_task.html", everything=everything, project = project)
 
 
 

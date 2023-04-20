@@ -43,7 +43,7 @@
                   <tbody>
                       {% for task in unfinished_sorted %}
                       <tr>
-                          <td>{{ task[1] }}</td>
+                          <td>{% if task[1] == None %}" "{% else %} {{ task[1] }}{% endif %}</td>
                           <td>{{ task[4] }}</td>
                           <td style="max-width: 150px; word-wrap: break-word;">{{ task[5] }}</td>
                           <td>{{ task[6] }}</td>

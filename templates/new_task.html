@@ -34,7 +34,7 @@
               <label for="todo-project">Project:</label>
               <select class="form-control" id="todo-project" name="todo-project">
                 <option value="">Select project or create a new one</option>
-                {% for project in projects %}
+                {% for project in project %}
                 <option value="{{ project[0] }}">{{ project[1] }}</option>
                 {% endfor %}
               </select>
