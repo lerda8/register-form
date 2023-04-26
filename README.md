@@ -1,1 +1,1 @@
-Creating a blog for a school project
+Creating a TO-DO for a school project
