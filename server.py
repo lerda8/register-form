@@ -46,6 +46,8 @@ def create_task_tables():
         description TEXT NOT NULL,
         due_date DATE NOT NULL,
         is_completed INTEGER NOT NULL DEFAULT 0,
+        file_name TEXT,
+        file_path TEXT,
         project_id TEXT,
         user_id INTEGER NOT NULL,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
@@ -53,17 +55,6 @@ def create_task_tables():
 
 create_task_tables()
 
-def create_files_tables():
-    db = get_connection()
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS files
-        (id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        path TEXT NOT NULL,
-        task_id INTEGER NOT NULL,
-        FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE)""")
-
-create_files_tables()
 
 ###Home
 
@@ -213,7 +204,7 @@ def tasks():
     connection = get_connection()
     cursor = connection.cursor()
     user_id = session.get("user_id")
-    projects_query = "SELECT * FROM projects LEFT JOIN tasks ON projects.id = tasks.project_id LEFT JOIN files ON tasks.id = files.task_id WHERE projects.user_id = ?;"
+    projects_query = "SELECT * FROM projects LEFT JOIN tasks ON projects.id = tasks.project_id WHERE projects.user_id = ?;"
     cursor.execute(projects_query,(user_id,))
     projects = cursor.fetchall()
     tasks_list = []
@@ -227,7 +218,7 @@ def tasks():
            finished.append(task)
        elif task[7]==0:
            unfinished.append(task)
-    #return unfinished
+    #return projects
     return render_template('tasks.html', finished=finished, unfinished=unfinished, projects = projects, tasks = tasks_list)
 
         
@@ -244,40 +235,32 @@ def upload():
         file = request.files.get('todo-file')
         user_id = session.get('user_id')
         conn = sqlite3.connect('users.db')
-        c = conn.cursor()
-        
-        # Check if both project options are selected
+        c = conn.cursor()        
         if not todo_project == "" and not todo_new_project == "":
             return "You can choose either a new project or an existing project, not both."
-        
         try:
-            # If new project is selected, check if the project name already exists
             if todo_new_project:
+
                 c.execute("SELECT id FROM projects WHERE name=? AND user_id=?", (todo_new_project, user_id))
                 project = c.fetchone()
-                if project is None:
+                if not project:
                     c.execute("INSERT INTO projects (name, user_id) VALUES (?, ?)",
                           (todo_new_project, user_id))
                     project_id = c.lastrowid
                 else:
                     project_id = project[0]
-            # If existing project is selected, use its ID
             else:
                 project_id = todo_project
-            
-            c.execute("INSERT INTO tasks (name, description, due_date, user_id, project_id) VALUES (?, ?, ?, ?, ?)",
-                      (todo_text, todo_description, todo_date, user_id, project_id))
-            task_id = c.lastrowid
-            
-            # Save file if one is uploaded
             if file:
                 filename = file.filename
                 file_id = filename
                 file_path = os.path.join('static/uploads', file_id)
-                c.execute("INSERT INTO files (name, path, task_id) VALUES (?, ?, ?)",
-                          (filename, file_path, task_id))
+                c.execute("INSERT INTO tasks (name, description, due_date, user_id, project_id, file_name, file_path) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        (todo_text, todo_description, todo_date, user_id, project_id, file_id, file_path))
                 file.save(file_path)
-
+            else:
+                c.execute("INSERT INTO tasks (name, description, due_date, user_id, project_id) VALUES (?, ?, ?, ?, ?)",
+                      (todo_text, todo_description, todo_date, user_id, project_id))
             conn.commit()
         except:
             conn.rollback()
@@ -314,14 +297,16 @@ def new_task():
     project_execute = cursor.execute(project_query,(user_id,))
     project = project_execute.fetchall()
     connection.close()
+    have_projects = len(project)
     connection = get_connection()
     cursor = connection.cursor()
-    all_query = "SELECT * FROM projects LEFT JOIN tasks ON projects.id = tasks.project_id LEFT JOIN files ON tasks.id = files.task_id WHERE projects.user_id = ?;"
+    all_query = "SELECT * FROM projects LEFT JOIN tasks ON projects.id = tasks.project_id WHERE projects.user_id = ?;"
     everything_execute = cursor.execute(all_query,(user_id,))
     everything = everything_execute.fetchall()
     connection.close()
     #return project
-    return render_template("new_task.html", everything=everything, project = project)
+    #return redirect(url_for('session_check'))
+    return render_template("new_task.html", everything=everything, project = project, have_projects = have_projects)
 
 
 
@@ -355,14 +340,27 @@ def delete_user(user_id):
         return redirect(url_for('login_form'))
     
 
+@app.route('/open-file/<path:filename>', methods=["POST"])
+def open_file(filename):    
+    return send_file(filename, as_attachment=False) 
+   
+
 
 @app.route("/debile")
 def session_check():
     session_list = []
+    session_dict = {}
     session_list.append(str(session.get('user_id')))
     session_list.append(str(session.get('is_admin')))
     session_list.append(str(session.get('full_access')))
     session_list.append(str(session.get('username')))
+    session_dict = {
+        'user_id':session_list[0],
+        'is_admin':session_list[1],
+        'full_access':session_list[2],
+        'username':session_list[3]
+    }
+    return session_dict
     return session_list
 
 

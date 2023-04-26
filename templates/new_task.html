@@ -8,7 +8,7 @@
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="{{url_for("index")}}">Blog</a>
+      <a class="navbar-brand" href="{{url_for("index")}}">TODO</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -33,10 +33,14 @@
             <div class="form-group">
               <label for="todo-project">Project:</label>
               <select class="form-control" id="todo-project" name="todo-project">
-                <option value="">Select project or create a new one</option>
-                {% for project in project %}
-                <option value="{{ project[0] }}">{{ project[1] }}</option>
-                {% endfor %}
+              {% if have_projects < 1 %}
+                  <option value="">No existing projects, create a new one</option>
+              {% else %}
+                  <option value="">Select project or create a new one</option>
+                  {% for project in project %}
+                  <option value="{{ project[0] }}">{{ project[1] }}</option>
+                  {% endfor %}
+               {% endif %}   
               </select>
               <div class="form-group mt-3">
                 <label for="todo-new-project">Or create a new project:</label>

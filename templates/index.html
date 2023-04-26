@@ -2,7 +2,7 @@
 
 <head>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">Blog</a>
+      <a class="navbar-brand" href="#">TODO</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -12,10 +12,10 @@
             <a class="nav-link" href="{{url_for("index")}}">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Blogs</a>
+            <a class="nav-link" href="{{url_for("login_form")}}">Login</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{url_for("login_form")}}">Login</a>
+            <a class="nav-link" href="{{url_for("register_form")}}">Register</a>
           </li>
         </ul>
       </div>
@@ -29,7 +29,10 @@
 <body>
 
     <center>
-        <h1>HOME</h1>
+        <h1>THE TODO APP</h1>
+        <p>Welcome to the TODO app where you can manage you tasks to keep up with your deadlines</p>
+        <p>If you dont have a account <a href="{{url_for("register_form")}}">register</a> </p><br>
+        <p>If you do <a href="{{url_for("login_form")}}">login</a><br> </p><br>
         <a href="{{url_for("register_form")}}">CREATE AN ACCOUNT</a><br>
         <a href="{{url_for("login_form")}}">I HAVE AN ACCOUNT</a><br>
     </center>
