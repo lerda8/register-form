@@ -24,44 +24,47 @@
       </div>
     </nav>
     <div class="container mt-5">
-      <h2 class="mb-4">Tasks</h2>
+      <h2 class="mb-4">Unfinished Tasks</h2>
       <div class="card">
           <div class="card-body">
-              {% if unfinished %}
-              {% set unfinished_sorted = unfinished|sort(attribute='1') %}
-              <table class="table table-bordered table-hover">
-                  <thead>
-                      <tr class="table-active">
-                          <th>Project</th>
-                          <th>Name</th>
-                          <th>Description</th>
-                          <th>Due Date</th>
-                          <th>File</th>
-                          <th>Mark as completed</th>
-                      </tr>
-                  </thead>
-                  <tbody>
-                      {% for task in unfinished_sorted %}
+            {% if projects %}
+            {% for project in projects %}
+              <h2>{{ project[1] }}</h2>
+              <table class="table  table-bordered table-hover">
+                <thead>
+                  <tr clas="table-active">
+                      <th>Name</th>
+                      <th>Description</th>
+                      <th>Due Date</th>
+                      <th>File</th>
+                      <th>Mark as completed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for task in unfinished %}
+                    {% if task[0] == project[1] %}
                       <tr>
-                          <td>{% if task[1] == None %}" "{% else %} {{ task[1] }}{% endif %}</td>
-                          <td>{{ task[4] }}</td>
-                          <td style="max-width: 150px; word-wrap: break-word;">{{ task[5] }}</td>
-                          <td>{{ task[6] }}</td>
-                          <td>{% if task[9] == None %}No files attached{% else %}<form action="{{ url_for('open_file', filename=task[9]) }}" method="post">{% endif %}
-                            <button type="submit" class="btn btn-outline-secondary">View file</button>
-                          </form></td>
-                          <td>
-                              <form method="POST" action="{{ url_for('complete_task', task_id=task[3]) }}">
-                                  <button type="submit" class="btn btn-outline-success">Mark as completed</button>
-                              </form>
-                          </td>                                      
+                        <td>{{ task[2] }}</td>
+                        <td style="max-width: 150px; word-wrap: break-word;">{{ task[3] }}</td>
+                        <td>{{ task[4] }}</td>
+                        <td>{% if task[6] == None %}No files attached{% else %}
+                          <form method="POST" action="{{ url_for('open_file', filename=task[7]) }}">
+                          <button type="download" class="btn btn-outline-secondary">Download</button>
+                          </form>{% endif %}
+                        </td>
+                        <td><form method="POST" action="{{ url_for('complete_task', task_id=task[1]) }}">
+                          <button type="submit" class="btn btn-outline-danger">Mark as not finished</button>
+                        </form>
+                        </td>
                       </tr>
-                      {% endfor %}
-                  </tbody>
+                    {% endif %}
+                  {% endfor %}
+                </tbody>
               </table>
-              {% else %}
-              <p>No unfinished tasks.</p>
-              {% endif %}
+            {% endfor %}
+          {% else %}
+            <p>No projects found.</p>
+          {% endif %}
           </div>
       </div>
   </div>
@@ -72,39 +75,44 @@
     <h2 class="mb-4">Finished Tasks</h2>
     <div class="card">
         <div class="card-body">
-            {% if finished %}
-            {% set finished_sorted = finished|sort(attribute='1') %}
+          {% if projects %}
+          {% for project in projects %}
+            <h2>{{ project[1] }}</h2>
             <table class="table  table-bordered table-hover">
-                <thead>
-                    <tr class="table-active">
-                        <th>Project</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Due Date</th>
-                        <th>File</th>
-                        <th>Mark as completed</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for task in finished_sorted %}
+              <thead>
+                <tr clas="table-active">
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Due Date</th>
+                    <th>File</th>
+                    <th>Mark as completed</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for task in finished %}
+                  {% if task[0] == project[1] %}
                     <tr>
-                        <td>{{ task[1] }}</td>
-                        <td>{{ task[4] }}</td>
-                        <td style="max-width: 150px; word-wrap: break-word;">{{ task[5] }}</td>
-                        <td>{{ task[6] }}</td>
-                        <td>{% if task[11] == None %}No files attached{% else %}<button type="button" class="btn btn-outline-secondary">Download files</button>{% endif %}</td>
-                        <td>
-                            <form method="POST" action="{{ url_for('complete_task', task_id=task[3]) }}">
-                                <button type="submit" class="btn btn-outline-danger">Mark as not finished</button>
-                            </form>
-                        </td>                                      
+                      <td>{{ task[2] }}</td>
+                      <td style="max-width: 150px; word-wrap: break-word;">{{ task[] }}</td>
+                      <td>{{ task[4] }}</td>
+                      <td>{% if task[6] == None %}No files attached{% else %}
+                        <form method="POST" action="{{ url_for('open_file', filename=task[7]) }}">
+                        <button type="download" class="btn btn-outline-secondary">Download</button>
+                        </form>{% endif %}
+                      </td>
+                      <td><form method="POST" action="{{ url_for('complete_task', task_id=task[1]) }}">
+                        <button type="submit" class="btn btn-outline-danger">Mark as not finished</button>
+                      </form>
+                      </td>
                     </tr>
-                    {% endfor %}
-                </tbody>
+                  {% endif %}
+                {% endfor %}
+              </tbody>
             </table>
-            {% else %}
-            <p>No finished tasks.</p>
-            {% endif %}
+          {% endfor %}
+        {% else %}
+          <p>No projects found.</p>
+        {% endif %}
         </div>
     </div>
 </div>

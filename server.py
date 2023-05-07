@@ -204,22 +204,22 @@ def tasks():
     connection = get_connection()
     cursor = connection.cursor()
     user_id = session.get("user_id")
-    projects_query = "SELECT * FROM projects LEFT JOIN tasks ON projects.id = tasks.project_id WHERE projects.user_id = ?;"
-    cursor.execute(projects_query,(user_id,))
+    tasks_query = "SELECT projects.name, tasks.id, tasks.name, tasks.description, tasks.due_date, tasks.is_completed, tasks.file_name, tasks.file_path FROM tasks JOIN projects ON tasks.project_id = projects.id WHERE tasks.user_id = ?;"
+    cursor.execute(tasks_query,(user_id,))
+    tasks = cursor.fetchall()
+    projects_query = "SELECT id, name FROM projects WHERE user_id = ?;"
+    cursor.execute(projects_query, (user_id,))
     projects = cursor.fetchall()
-    tasks_list = []
-    for project in projects:
-        tasks_list.append(project)
     connection.close()
     finished=[]
     unfinished=[]
-    for task in tasks_list:
-       if task[7]==1:
+    for task in tasks:
+       if task[5]==1:
            finished.append(task)
-       elif task[7]==0:
+       elif task[5]==0:
            unfinished.append(task)
-    #return projects
-    return render_template('tasks.html', finished=finished, unfinished=unfinished, projects = projects, tasks = tasks_list)
+    #return finished
+    return render_template('tasks.html', projects = projects, tasks = tasks, unfinished = unfinished, finished = finished)
 
         
 
