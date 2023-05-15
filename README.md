@@ -7,3 +7,4 @@ Made using:
 - Python
 - Flask
 - SQlite
+- Bootstrap
