@@ -4,6 +4,6 @@
 Web Systems Development Class Final Project
 
 Made using:
--Python
--Flask
--SQlite
+- Python
+- Flask
+- SQlite
