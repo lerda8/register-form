@@ -213,13 +213,28 @@ def tasks():
     connection.close()
     finished=[]
     unfinished=[]
+    projects_finished=[]
+    projects_unfinished=[]
     for task in tasks:
        if task[5]==1:
            finished.append(task)
        elif task[5]==0:
            unfinished.append(task)
-    #return finished
-    return render_template('tasks.html', projects = projects, tasks = tasks, unfinished = unfinished, finished = finished)
+    for project in projects:
+        for task in unfinished:
+            if task[0] == project[1]:
+                projects_unfinished.append(project)
+                break
+            else:
+                pass
+        for task in finished:
+            if task[0] == project[1]:
+                projects_finished.append(project)
+                break
+        else:
+            pass
+
+    return render_template('tasks.html', projects = projects, tasks = tasks, unfinished = unfinished, finished = finished, projects_unfinished = projects_unfinished, projects_finished = projects_finished)
 
         
 
@@ -234,33 +249,46 @@ def upload():
         todo_date = request.form['todo-date']
         file = request.files.get('todo-file')
         user_id = session.get('user_id')
+        full_access = session.get('full_access', False)
         conn = sqlite3.connect('users.db')
         c = conn.cursor()        
-        if not todo_project == "" and not todo_new_project == "":
+        if not full_access:
+            c.execute("SELECT COUNT(*) FROM projects WHERE user_id=?", (user_id,))
+            num_projects = c.fetchone()[0]
+            if num_projects >= 5 and todo_new_project:
+                return "You have reached the maximum number of projects. Please upgrade to full access to create more projects."
+                    
+            c.execute("SELECT COUNT(*) FROM tasks WHERE user_id=?", (user_id,))
+            num_tasks = c.fetchone()[0]
+            if num_tasks >= 15:
+                return "You have reached the maximum number of tasks. Please upgrade to full access to create more tasks."
+
+        
+        if not todo_project and not todo_new_project:
+            return "Please choose a project or create a new project."
+        if todo_project and todo_new_project:
             return "You can choose either a new project or an existing project, not both."
+        
         try:
             if todo_new_project:
-
                 c.execute("SELECT id FROM projects WHERE name=? AND user_id=?", (todo_new_project, user_id))
                 project = c.fetchone()
                 if not project:
-                    c.execute("INSERT INTO projects (name, user_id) VALUES (?, ?)",
-                          (todo_new_project, user_id))
+                    c.execute("INSERT INTO projects (name, user_id) VALUES (?, ?)", (todo_new_project, user_id))
                     project_id = c.lastrowid
                 else:
                     project_id = project[0]
             else:
                 project_id = todo_project
+                
             if file:
                 filename = file.filename
                 file_id = filename
                 file_path = os.path.join('static/uploads', file_id)
-                c.execute("INSERT INTO tasks (name, description, due_date, user_id, project_id, file_name, file_path) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        (todo_text, todo_description, todo_date, user_id, project_id, file_id, file_path))
+                c.execute("INSERT INTO tasks (name, description, due_date, user_id, project_id, file_name, file_path) VALUES (?, ?, ?, ?, ?, ?, ?)", (todo_text, todo_description, todo_date, user_id, project_id, file_id, file_path))
                 file.save(file_path)
             else:
-                c.execute("INSERT INTO tasks (name, description, due_date, user_id, project_id) VALUES (?, ?, ?, ?, ?)",
-                      (todo_text, todo_description, todo_date, user_id, project_id))
+                c.execute("INSERT INTO tasks (name, description, due_date, user_id, project_id) VALUES (?, ?, ?, ?, ?)", (todo_text, todo_description, todo_date, user_id, project_id))
             conn.commit()
         except:
             conn.rollback()
@@ -277,7 +305,6 @@ def upload():
 def complete_task(task_id):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    # Get the current value of is_completed
     c.execute('SELECT is_completed FROM tasks WHERE id = ?', (task_id,))
     is_completed = c.fetchone()[0]
     if is_completed == 1:
